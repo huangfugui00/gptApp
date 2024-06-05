@@ -1,0 +1,37 @@
+﻿# entries moved here from the top-level .gitignore
+*.obj
+*.lib
+*.dll
+*.dylib
+*.def
+*.o
+*.out
+*.rar
+*.xlsx
+*.xls
+*.txt
+*.exe
+*.xlsm
+*.doc
+*.docx
+*.gitignore
+*.xml
+*.jpg
+*.pk
+*.csv
+dist/
+__pycache__
+.idea
+*.pyc
+
+
+build
+
+
+# 忽略所有文件
+*
+# 不忽略目录
+!*/
+# 不忽略文件.gitignore和*.foo
+!.gitignore
+!*.py

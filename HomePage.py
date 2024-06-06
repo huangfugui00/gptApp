@@ -1,7 +1,29 @@
 import streamlit as st
 import random
 from streamlit_pdf_viewer import pdf_viewer
+from PyPDF2 import PdfReader
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
+from langchain.chains import ReduceDocumentsChain,StuffDocumentsChain
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_openai import ChatOpenAI
+from langchain.docstore.document import Document
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.chains.summarize import load_summarize_chain
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+import os
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv('.env'))
+api_key = os.environ.get('openai_api_key')
+
+
 from logic import get_upload_file,cache_file
+
+llm = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo",
+                 openai_api_base="https://api.chatanywhere.tech/v1",
+                 openai_api_key=api_key
+                 )
 
 
 def page_layout_view():
@@ -37,6 +59,7 @@ def sidebar_view():
         if select_paper:
             upload_file = get_upload_file(select_paper)
 
+
     if is_clear_docs and 'key' in st.session_state.keys():
         clear_docs()
 
@@ -50,8 +73,81 @@ def content_container(pdf_file):
         pdf_viewer(input=binary_data,
                   height=700)
 
-def chat_container():
+
+def chat_container(pdf_file):
     st.write("chat")
+    if pdf_file:
+        mission = st.selectbox(label="" ,options=['','总结文章','列出关键点'])
+        if mission == '总结文章':
+            pdf_reader = PdfReader(pdf_file)
+
+            texts = [page.extract_text() for page in pdf_reader.pages]
+            # texts = text_splitter.split_text(str(pdf_file.read(),encoding='utf-8'))
+            # Create multiple documents
+            docs = [Document(page_content=t) for t in texts]
+
+            # Text summarization
+            prompt = PromptTemplate(input_variables=['docs'],
+                                    template=""""The following is a set of documents
+                 {docs}
+                 根据这个文档列表，写一个500字以内的摘要.
+                 Helpful Answer:""")
+            # Text summarization
+            chain = LLMChain(llm=llm, prompt=prompt)
+           # chain = load_summarize_chain(llm, chain_type='map_reduce')
+            content = chain.invoke(docs)
+            st.write(content['text'])
+            pass
+        elif mission == "列出关键点":
+            pdf_reader = PdfReader(pdf_file)
+
+            texts = [page.extract_text() for page in pdf_reader.pages]
+
+
+            # texts = text_splitter.split_text(str(pdf_file.read(),encoding='utf-8'))
+            # Create multiple documents
+            docs = [Document(page_content=t) for t in texts]
+
+            prompt = PromptTemplate(input_variables=['docs'],
+                                               template=""""The following is a set of documents
+                {docs}
+                根据这个文档列表，列出十个最重要的关键词
+                Helpful Answer:""")
+            # Text summarization
+            chain = LLMChain(llm=llm, prompt=prompt)
+            content = chain.invoke(docs)
+            st.write(content['text'])
+        elif mission == "列出关键点1":
+            pdf_reader = PdfReader(pdf_file)
+            texts = [page.extract_text() for page in pdf_reader.pages]
+            # texts = text_splitter.split_text(str(pdf_file.read(),encoding='utf-8'))
+            # Create multiple documents
+            docs = [Document(page_content=t) for t in texts]
+
+            text_splitter = RecursiveCharacterTextSplitter(separators=["\n\n", "\n"], chunk_size=2000, chunk_overlap=50)
+            docs = text_splitter.split_documents(docs)
+            # texts = text_splitter.split_text(str(pdf_file.read(),encoding='utf-8'))
+            # Create multiple documents
+            # docs = [Document(page_content=t) for t in texts]
+            map_template_name = PromptTemplate(input_variables=['docs'],
+                                               template=""""The following is a set of documents
+            {docs}
+            Based on this list of docs, give me main key points
+            Helpful Answer:""")
+            map_chain = LLMChain(llm=llm, prompt=map_template_name)
+            combine_documents_chain = StuffDocumentsChain(
+                llm_chain=map_chain, document_variable_name="docs"
+            )
+            reduce_documents_chain = ReduceDocumentsChain(
+                # This is final chain
+                combine_documents_chain=combine_documents_chain,
+                # If documents exceed context for `StuffDocumentsChain`
+                collapse_documents_chain=combine_documents_chain,
+                # The maximum number of tokens to group documents into.
+                token_max=500,
+            )
+            output = reduce_documents_chain.run(docs)
+            st.write(output)
     pass
 
 
@@ -62,7 +158,7 @@ def main():
     with col1:
         content_container(upload_file)
     with col2:
-        chat_container()
+        chat_container(upload_file)
 
 
 main()

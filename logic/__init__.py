@@ -1,6 +1,7 @@
-from .fileLogic import cache_file,get_upload_file
-
+from .fileLogic import readPdfToDocumentList
+from .sessionManage import cache_add_file,get_File_by_name
 __all__ = [
-    'cache_file',
-    'get_upload_file'
+    'readPdfToDocumentList',
+    'cache_add_file',
+    'get_File_by_name'
 ]

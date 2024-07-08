@@ -11,10 +11,8 @@ from langchain.callbacks import get_openai_callback
 
 import pickle
 import os
-# load api key lib
 from dotenv import load_dotenv
 import base64
-
 
 # Background images add function
 def add_bg_from_local(image_file):

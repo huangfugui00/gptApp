@@ -1,34 +1,17 @@
 import streamlit as st
 import random
-from streamlit_pdf_viewer import pdf_viewer
 from PyPDF2 import PdfReader
 from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
-from langchain.chains import ReduceDocumentsChain,StuffDocumentsChain
-from langchain_community.document_loaders import PyPDFLoader
-from langchain_openai import ChatOpenAI
-from langchain.docstore.document import Document
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains.summarize import load_summarize_chain
-import os
-from dotenv import load_dotenv, find_dotenv
+from streamApp.logic.LLMLogic import qa
 from logic import readPdfToDocumentList,cache_add_file,get_File_by_name,CFile,cache_clear_file
 from css import css
 import copy
-from typing import  List
-load_dotenv(find_dotenv('.env'))
-api_key = os.environ.get('openai_api_key')
+from typing import List
 
-model_name = 'gpt-3.5-turbo-ca'
-
-llm = ChatOpenAI(temperature=0, model_name=model_name,
-                 openai_api_base="https://api.chatanywhere.tech/v1",
-                 openai_api_key=api_key
-                 )
 
 if 'file_document' not in st.session_state.keys():
     st.session_state['file_document']: List[CFile] = []
-
 
 
 def page_layout_view():
@@ -93,35 +76,28 @@ def chat_container(pdf_file_name):
         file = get_File_by_name(pdf_file_name)
         docs = file.doc_list
 
+
         if mission == '总结文章':
             # Text summarization
-            prompt = PromptTemplate(input_variables=['docs'],
-                                    template=""""The following is a set of documents
-                 {docs}
-                 根据这个文档列表，写一个200字以内的摘要.
-                 Helpful Answer:""")
-            # Text summarization
-            chain = LLMChain(llm=llm, prompt=prompt)#比chain = load_summarize_chain(llm, chain_type='map_reduce')更快，消耗的token也基本一样，且只需要调用一次#与chain = load_summarize_chain(llm, chain_type='stuff')一致；自己创建prompt的好处就是可以自定义，推荐
-            content = chain.invoke(docs)
+            content =qa(docs,'写一个500字以内的摘要')
             st.write(content['text'])
             pass
         elif mission == "列出关键点":
-            prompt = PromptTemplate(input_variables=['docs'],
-                                               template=""""The following is a set of documents
-                {docs}
-                根据这个文档列表，列出十个最重要的关键词
-                Helpful Answer:""")
-            # Text summarization
-            chain = LLMChain(llm=llm, prompt=prompt)
-            content = chain.invoke({"docs":docs})
+            content = qa(docs, '列出十个最重要的关键词')
             st.write(content['text'])
 
+        st.write("\n")
+        question = st.text_input('边看文档，边提问', max_chars=100, help='最大长度为100字符')
+        if question:
+            content = qa(docs, question)
+            st.write(content['text'])
 
 def main():
 
     page_layout_view()
     upload_file = sidebar_view()
     if upload_file is None: #多pdf问答
+
         pass
     else: #单个pdf问答
         col1, col2 = st.columns(2)

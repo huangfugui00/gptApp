@@ -1,13 +1,12 @@
 import streamlit as st
 import random
-from PyPDF2 import PdfReader
-from langchain.prompts import PromptTemplate
-from langchain.chains import LLMChain
-from streamApp.logic.LLMLogic import qa
-from logic import readPdfToDocumentList,cache_add_file,get_File_by_name,CFile,cache_clear_file
+from streamApp.logic.LLMLogic import qa_web,qa_sources,doc_to_vecstore,qa_sources_db
+from streamApp.logic.sessionManage import cache_add_file,cache_clear_file,get_File_by_name,CFile,ChatHistory
+from streamApp.logic.fileLogic import readPdfToDocumentList
 from css import css
 import copy
 from typing import List
+import streamlit_antd_components as sac
 
 
 if 'file_document' not in st.session_state.keys():
@@ -43,15 +42,17 @@ def sidebar_view():
         is_clear_docs = st.button("清空文档", type="primary")
         upload_file = None
         if uploaded_files:
-            select_paper = st.selectbox('选择文章',
-                                         [""]+[file.name for file in uploaded_files])
+
             cache_clear_file(uploaded_files)
             for file in uploaded_files:
-                if get_File_by_name(file.name) is None:
+                cFile = get_File_by_name(file.name)
+                if not cFile.is_valid():
                     doc_list = readPdfToDocumentList(copy.deepcopy(file))
-                    cFile = CFile(file.name,file.read(),doc_list)
+                    db = doc_to_vecstore(file.name,doc_list)
+                    cFile = CFile(file.name,file.read(),doc_list,db)
                     cache_add_file(cFile)
-
+            select_paper = st.selectbox('选择文章',
+                                        [""] + [file.name for file in uploaded_files])
             if select_paper:
                 upload_file = select_paper
 
@@ -64,40 +65,62 @@ def sidebar_view():
 def content_container(pdf_file_name):
     if pdf_file_name:
         file = get_File_by_name(pdf_file_name)
-        import base64
-        base64_pdf = base64.b64encode(file.pdf_show_content).decode('utf-8')
-        pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="98%" height="1000" type="application/pdf">'
-        st.markdown(pdf_display, unsafe_allow_html=True)
+        if file.is_valid():
+            import base64
+            base64_pdf = base64.b64encode(file.pdf_show_content).decode('utf-8')
+            pdf_display = f'<embed src="data:application/pdf;base64,{base64_pdf}" width="98%" height="1000" type="application/pdf">'
+            st.markdown(pdf_display, unsafe_allow_html=True)
 
+def _show_chat_history(cfile:CFile):
+    num_history = len(cfile.history)
+    messages = st.container(height=760)
+    for i in range(num_history):
+        chat_history = cfile.history[num_history-1-i]
+        messages.chat_message("assistant").write(f"Echo: {chat_history.agent_message}")
+        messages.chat_message("user").write(chat_history.user_message)
 
 def chat_container(pdf_file_name):
     if pdf_file_name:
-        mission = st.selectbox(label="" ,options=['','总结文章','列出关键点'])
+        mission = st.selectbox(label="预定功能选项" ,options=['','总结文章','列出关键点'])
         file = get_File_by_name(pdf_file_name)
+        if not  file.is_valid():
+            return
         docs = file.doc_list
-
-
+        vector_store = file.vector_store
         if mission == '总结文章':
             # Text summarization
-            content =qa(docs,'写一个500字以内的摘要')
-            st.write(content['text'])
-            pass
+            if file.summary :
+                content = file.summary
+            else:
+                content = qa_sources_db(vector_store,'写一个500字以内的摘要')
+                file.summary = content
+            st.write(content)
+
         elif mission == "列出关键点":
-            content = qa(docs, '列出十个最重要的关键词')
-            st.write(content['text'])
+            if file.key_point:
+                content = file.key_point
+            else:
+                content = qa_sources(docs, '列出十个最重要的关键词')
+                file.key_point = content
+            st.write(content)
 
         st.write("\n")
-        question = st.text_input('边看文档，边提问', max_chars=100, help='最大长度为100字符')
-        if question:
-            content = qa(docs, question)
-            st.write(content['text'])
+
+        question = st.chat_input("边看文档，边提问", max_chars=100)
+
+
+        if question :
+            content = qa_sources_db(vector_store, question)
+            chatHistory = ChatHistory(question,content)
+            file.addHistory(chatHistory)
+        _show_chat_history(file)
+
+
 
 def main():
-
     page_layout_view()
     upload_file = sidebar_view()
     if upload_file is None: #多pdf问答
-
         pass
     else: #单个pdf问答
         col1, col2 = st.columns(2)

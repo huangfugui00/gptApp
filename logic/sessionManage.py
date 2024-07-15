@@ -22,6 +22,7 @@ class CFile:
         self.file_name = file_name
         self.doc_list = doc_list
         self.vector_store = vector_store
+        self.history = []
 
     def addHistory(self,chatHistory:ChatHistory):
         self.history.append(chatHistory)

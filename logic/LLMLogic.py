@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 import os
 from dotenv import load_dotenv, find_dotenv
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma,VectorStore
 from langchain.chains import RetrievalQA
 import chromadb
 
@@ -56,8 +56,9 @@ def qa_web(propmt_word):
     return content
 
 
-def qa_sources_db(db,question):
-    chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=db.as_retriever(),
+def qa_sources_db(db:VectorStore,question):
+    retriever = db.as_retriever()
+    chain = RetrievalQA.from_chain_type(llm=llm, chain_type="stuff", retriever=retriever,
                                         input_key="question")
     response = chain({"question": question})
     return response['result']

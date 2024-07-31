@@ -11,13 +11,13 @@ from langchain.chains import RetrievalQA
 
 load_dotenv(find_dotenv('.env'))
 api_key = os.environ.get('openai_api_key')
-
+api_key = 'sk-s1AuQVZizBNwJuTwMLwXgQ4OSLosHXdzq8Q5do1DdeHI7hyR'
 
 model_name = 'gpt-4o-mini' #首选gpt-4o-mini
 
-llm = ChatOpenAI(temperature=0, model_name=model_name,
+llm = ChatOpenAI(temperature=0, model_name = model_name,
                  openai_api_base="https://api.chatanywhere.tech/v1",
-                 openai_api_key=api_key,
+                 openai_api_key= api_key,
                  )
 
 embeddings = OpenAIEmbeddings(openai_api_key=api_key,openai_api_base="https://api.chatanywhere.tech/v1")

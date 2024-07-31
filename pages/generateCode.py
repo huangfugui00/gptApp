@@ -7,7 +7,7 @@ from PIL import Image
 from io import BytesIO
 load_dotenv()
 api_key = os.environ.get('openai_api_key')
-
+api_key = 'sk-s1AuQVZizBNwJuTwMLwXgQ4OSLosHXdzq8Q5do1DdeHI7hyR'
 
 MODEL ="gpt-4o-mini"
 

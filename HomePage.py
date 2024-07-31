@@ -48,8 +48,8 @@ def sidebar_view():
                 cFile = get_File_by_name(file.name)
                 if not cFile.is_valid():
                     doc_list = readPdfToDocumentList(copy.deepcopy(file))
-                    db = doc_to_vecstore(file.name,doc_list)
-                    cFile = CFile(file.name,file.read(),doc_list,db)
+
+                    cFile = CFile(file.name,file.read(),doc_list)
                     cache_add_file(cFile)
             select_paper = st.selectbox('选择文章',
                                         [""] + [file.name for file in uploaded_files])
@@ -92,7 +92,7 @@ def chat_container(pdf_file_name):
             if file.summary :
                 content = file.summary
             else:
-                content = qa_sources(docs, '写一个500字以内的摘要')
+                content = qa_sources(docs, '写一个200字以内的摘要')
                 file.summary = content
             st.write(content)
 
@@ -110,7 +110,7 @@ def chat_container(pdf_file_name):
 
 
         if question :
-            content = qa_sources(vector_store, question)
+            content = qa_sources(docs, question)
             chatHistory = ChatHistory(question,content)
             file.addHistory(chatHistory)
         _show_chat_history(file)

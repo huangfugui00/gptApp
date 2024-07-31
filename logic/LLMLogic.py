@@ -31,6 +31,7 @@ def doc_to_vecstore(filename:str,docs):
         filename = filename.replace(".","")
         if len(filename)>60:
             filename = filename[:60]
+        filename[0]
         return filename
 
     collection_name=__to_valid_collect_name(filename)

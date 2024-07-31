@@ -17,11 +17,10 @@ class CFile:
     vector_store=None
     history:List[ChatHistory] = []
 
-    def __init__(self,file_name,pdf_show_content,doc_list,vector_store):
+    def __init__(self,file_name,pdf_show_content,doc_list,vector_store=None):
         self.pdf_show_content = pdf_show_content
         self.file_name = file_name
         self.doc_list = doc_list
-        self.vector_store = vector_store
         self.history = []
 
     def addHistory(self,chatHistory:ChatHistory):

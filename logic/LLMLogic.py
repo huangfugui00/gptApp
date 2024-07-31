@@ -7,7 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma,VectorStore
 from langchain.chains import RetrievalQA
-import chromadb
+#import chromadb
 
 load_dotenv(find_dotenv('.env'))
 api_key = os.environ.get('openai_api_key')
@@ -22,7 +22,7 @@ llm = ChatOpenAI(temperature=0, model_name=model_name,
 
 embeddings = OpenAIEmbeddings(openai_api_key=api_key,openai_api_base="https://api.chatanywhere.tech/v1")
 
-chroma_client = chromadb.Client()
+#chroma_client = chromadb.Client()
 
 
 def doc_to_vecstore(filename:str,docs):

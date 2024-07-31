@@ -1,4 +1,4 @@
-﻿# entries moved here from the top-level .gitignore
+# entries moved here from the top-level .gitignore
 *.obj
 *.lib
 *.dll
@@ -9,7 +9,6 @@
 *.rar
 *.xlsx
 *.xls
-*.txt
 *.exe
 *.xlsm
 *.doc

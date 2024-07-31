@@ -2,13 +2,14 @@ import streamlit as st
 from PyPDF2 import PdfReader
 from langchain.docstore.document import Document
 
+
+
 def file_type(filename):
     return filename.split(".")[-1]
 
 
 def cache_file(uploaded_files):
     st.session_state['uploaded_files']=uploaded_files
-
 
 
 def get_upload_file(filename):

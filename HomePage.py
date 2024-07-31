@@ -92,7 +92,7 @@ def chat_container(pdf_file_name):
             if file.summary :
                 content = file.summary
             else:
-                content = qa_sources_db(vector_store,'写一个500字以内的摘要')
+                content = qa_sources(docs, '写一个500字以内的摘要')
                 file.summary = content
             st.write(content)
 
@@ -110,7 +110,7 @@ def chat_container(pdf_file_name):
 
 
         if question :
-            content = qa_sources_db(vector_store, question)
+            content = qa_sources(vector_store, question)
             chatHistory = ChatHistory(question,content)
             file.addHistory(chatHistory)
         _show_chat_history(file)

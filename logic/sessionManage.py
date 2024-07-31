@@ -34,8 +34,6 @@ class CFile:
         return  len(self.file_name)>0
 
 
-
-
 def get_File_by_name(filename)->CFile :
     cfile = CFile("","",[],"")
     for file_obj in st.session_state['file_document']:

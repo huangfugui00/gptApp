@@ -13,7 +13,7 @@ load_dotenv(find_dotenv('.env'))
 api_key = os.environ.get('openai_api_key')
 
 
-model_name = 'gpt-3.5-turbo' #gpt-3.5-turbo-ca会消耗比较低,但响应时间会很长
+model_name = 'gpt-4o-mini' #首选gpt-4o-mini
 
 llm = ChatOpenAI(temperature=0, model_name=model_name,
                  openai_api_base="https://api.chatanywhere.tech/v1",

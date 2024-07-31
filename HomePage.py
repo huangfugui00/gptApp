@@ -1,12 +1,12 @@
 import streamlit as st
 import random
-from streamApp.logic.LLMLogic import qa_web,qa_sources,doc_to_vecstore,qa_sources_db
-from streamApp.logic.sessionManage import cache_add_file,cache_clear_file,get_File_by_name,CFile,ChatHistory
-from streamApp.logic.fileLogic import readPdfToDocumentList
+
+from logic.LLMLogic import qa_web,qa_sources,doc_to_vecstore,qa_sources_db
+from logic.sessionManage import cache_add_file,cache_clear_file,get_File_by_name,CFile,ChatHistory
+from logic.fileLogic import readPdfToDocumentList
 from css import css
 import copy
 from typing import List
-import streamlit_antd_components as sac
 
 
 if 'file_document' not in st.session_state.keys():
